@@ -1,3 +1,8 @@
+## Specific Ignores
+example/
+
+
+## Default Python ignores
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
