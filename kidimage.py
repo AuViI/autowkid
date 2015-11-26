@@ -20,11 +20,14 @@ class Eintrag:
 class Tag:
 
     def __init__(self, unixt):
+        def germanify(ein):
+            return ein.replace("Thu.", "Don.").replace("Wed.", "Mit.").replace("Tue.", "Die.").replace("Fri.", "Fre.").replace("Sun.", "Son.").replace("Sat.", "Sam.")
         self.unixt = unixt
-        self.title = time.strftime("%a. %d. %b", time.localtime(unixt))
+        self.title = germanify(time.strftime(
+            "%a. %d. %b", time.localtime(unixt)))
         self.monat = time.strftime("%-m", time.localtime(unixt))
         self.tag = time.strftime("%-d", time.localtime(unixt))
-        self.stag = time.strftime("%a", time.localtime(unixt))
+        self.stag = germanify(time.strftime("%a", time.localtime(unixt)))
         self.eintraege = []
 
     def addEintrag(self, eintrag):
@@ -35,9 +38,13 @@ class Tag:
 
 
 def sevenDayArray(now):
+    return getnDayArray(now, 7)
+
+
+def getnDayArray(now, n=5):
     tdiff = 60 * 60 * 24
     days = []
-    for x in range(0, tdiff * 7, tdiff):
+    for x in range(0, tdiff * n, tdiff):
         days.append(Tag(now + x))
         if enableDebug:
             import testing
@@ -55,7 +62,7 @@ def printDayArray(da):
 
 
 def main(args):
-    days = sevenDayArray(time.time())
+    days = getnDayArray(time.time(), 5)
     if enableDebug:
         printDayArray(days)
         library.genImage(days)
