@@ -18,6 +18,13 @@ class Eintrag:
 
 
 class Tag:
+    """
+    Tag Klasse.
+    Erstellt mit unix-Zeit,
+    Wandelt selbst in deutschen Titel um.
+    Einträge werden mit addEintrag(eintrag) dem
+    Tag zugewiesen.
+    """
 
     def __init__(self, unixt):
         def germanify(ein):
@@ -38,6 +45,10 @@ class Tag:
 
 
 def sevenDayArray(now):
+    """
+    Generiert Tag-Array für sieben Tag, ab now
+    now -- unix Zeit
+    """
     return getnDayArray(now, 7)
 
 
