@@ -77,11 +77,11 @@ def genImage(dayarray, size=(1280, 720), font="Lumberjack.otf"):
             print("not enough dates to \"wave\"")
 
         vskip = 0
-        draw.text(((1 - ds1 / ds0) * 300 + padding[3] + hskip * (size[0] - padding[1]) / len(dayarray), vskip *
+        draw.text(((1 - ds1 / ds0) * 300 + padding[1] + hskip * (size[0] - padding[3]) / len(dayarray), vskip *
                    fontsize + 15 + daywave), str(tag.title), fill=highlight, font=ttf)
         vskip = 1.5
         for eintrag in tag.eintraege:
-            draw.text(((1 - ds1 / ds0) * 300 + padding[3] + hskip * (size[0] - padding[1]) / len(dayarray), vskip *
+            draw.text(((1 - ds1 / ds0) * 300 + padding[1] + hskip * (size[0] - padding[3]) / len(dayarray), vskip *
                        fontsize + 15 + daywave), str(eintrag), fill=textcolor, font=ttf)
             vskip += 1
         hskip += 1
