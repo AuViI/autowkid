@@ -8,8 +8,53 @@ and a easy-to-use kiddies class.
 import requests
 import json
 import os
+import datetime
 
 debug = True
+
+class wms:
+    """
+    Weather Monitoring System interface in python.
+    Wrapper of the wmsapi.wmsapi class, to be as similar to the web interface
+    as possible.
+    """
+    def __init__(self, url="http://wms.viwetter.de/api/index.php"):
+        self.api = None
+        self.user = "default"
+        self.url = url
+        self.api_start = datetime.datetime.now()
+
+    def login(self, username, password):
+        """
+        log into the Weather Monitoring System.
+        returns true is successfull
+
+        arguments:
+        username -- wms-username
+        password -- self explanatory
+        """
+        self.api = wmsapi(username, password, self.url)
+        self.user = username
+        self.session_start = datetime.datetime.now()
+        return self.api.ping()
+
+    def folderContents(self, identifier):
+        """
+        returns an array with dictionaries for every entry with <identifier> as
+        it's folder id.
+
+        arguments:
+        identifier -- folder id or name
+        """
+        if type(identifier)==str:
+            identifier = self.api.translateFolder(identifier)
+        entr = self.api.getTableDict("entries")
+        entrList = []
+        for en in entr:
+            if int(en["fid"]) == identifier:
+                entrList.append(en)
+        return entrList
+
 
 class wmsapi:
     """
@@ -20,7 +65,7 @@ class wmsapi:
 
     def __init__(self, username, password, url="http://wms.viwetter.de/api/index.php"):
         """
-        wmsapi.wmsapi(username, password [, url])
+        Constructor for the wmsapi.
         """
         self.username = username
         self.password = password
@@ -28,7 +73,6 @@ class wmsapi:
 
     def post(self, data=None, files=None):
         """
-        post([data, files])
         general post request handler
         uses self.url as request target
 
@@ -47,7 +91,6 @@ class wmsapi:
 
     def ping(self):
         """
-        ping()
         returns true if the server is up and the login data is correct,
         otherwise false
         """
@@ -55,7 +98,6 @@ class wmsapi:
 
     def prepfile(self, path):
         """
-        prepfile(path)
         opens file in the correct format to be sent over post
 
         arguments:
@@ -66,7 +108,6 @@ class wmsapi:
 
     def uploadfile(self, path, data=None):
         """
-        uploadfile(path [, data])
         tries to upload file at <path> to self.url
         <data> is passed through, and necessary for the server
         to accept the file(s)
@@ -82,7 +123,6 @@ class wmsapi:
 
     def newCycle(self, path, target):
         """
-        newCycle(path, target)
         adds file at <path> to folder with <target> id
         to query for the id use getTableDict(table)
 
@@ -99,7 +139,6 @@ class wmsapi:
 
     def delLastCycle(self, target):
         """
-        delLastCycle(target)
         deletes oldst file from folder target
 
         arguments:
@@ -110,7 +149,6 @@ class wmsapi:
 
     def getFolderSize(self, target):
         """
-        getFolderSize(target)
         returns the number of active files in folder with id <target>
         if non-existant returns 0
 
@@ -122,7 +160,6 @@ class wmsapi:
 
     def getTableJson(self, table):
         """
-        getTableJson(table)
         returns a json string from table <table>
         can be a huge amout of text to be received
         raises LookupError when table doesn't exist
@@ -137,7 +174,6 @@ class wmsapi:
 
     def getTableDict(self, table):
         """
-        getTableDict(table)
         return a dictionary containing all rows from table <table>
         raises LookupError when table doesn't exist
 
@@ -146,9 +182,32 @@ class wmsapi:
         """
         return json.loads(self.getTableJson(table))
 
+    def translateFolder(self, identifier):
+        """
+        Queries the API for tables.
+        if <identifier> is of type int, returns the name of the folder with
+        id <identifier> as a str.
+        if <identifier> is of type str, returns the id of the folder with
+        str <identifier> as it's name.
+
+        arguments:
+        identifier -- id or name of folder
+        """
+        folders = self.getTableDict("folders")
+        if type(identifier) == int:
+            for row in folders:
+                if int(row["id"])==identifier:
+                    return row["folder"]
+            raise LookupError("no folder with that id")
+        elif type(identifier) == str:
+            for row in folders:
+                if row["folder"]==identifier:
+                    return int(row["id"])
+            raise LookupError("no folder with that name")
+        raise ValueError("identifier in unknown format")
+
     def nicePrintTables(self, tofile=None):
         """
-        nicePrintTables([tofile])
         Printing contents of all tables to console or to a
         file if <tofile> is set
 
@@ -219,7 +278,6 @@ class kiddies:
 
     def cyclekid(self, npath):
         """
-        cyclekid(npath)
         adds the file at <npath> to the default target, this object
         was initialized with.
         if more than self.goalnum images reside at self.target it deletes
@@ -231,14 +289,12 @@ class kiddies:
 
     def ping():
         """
-        ping()
         pings the server and return true if login data is correct
         """
         return self.api.ping()
 
 def valid(url, username, password):
     """
-    valid(url, username, password)
     procedural version of wmsapi.ping(), tries to access the url and login
     returns true if server is on and accepts the login data
     be aware that you are sending your unencrypted password to the url
