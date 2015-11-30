@@ -17,17 +17,37 @@ class wms:
     Weather Monitoring System interface in python.
     Wrapper of the wmsapi.wmsapi class, to be as similar to the web interface
     as possible.
+
+    This class should be able to login, get diagnostics, upload, and delete
+    images, maybe downloading
+
+    Usage:
+        api = wms(\"url\")
+        api.login(\"username\", \"password\")
+        api.folderContents(\"foldername\")
+        api.addimg(\"path/to/img\", \"foldername\")
+        api.deloldestimg(\"foldername\")
     """
     def __init__(self, url="http://wms.viwetter.de/api/index.php"):
         self.api = None
         self.user = "default"
         self.url = url
         self.api_start = datetime.datetime.now()
+        self.errormsg = "[ERROR] not logged in"
+
+    def interact(self):
+        """
+        login via command-line input, without showing the password
+        """
+        import getpass
+        username = input("Username: ")
+        password = getpass.getpass("Password: ")
+        return self.login(username, password)
 
     def login(self, username, password):
         """
         log into the Weather Monitoring System.
-        returns true is successfull
+        returns true is successfull.
 
         arguments:
         username -- wms-username
@@ -54,6 +74,67 @@ class wms:
             if int(en["fid"]) == identifier:
                 entrList.append(en)
         return entrList
+
+    def addimg(self, image, identifier):
+        """
+        figures out how to add image (remote/upload)
+        then contacts the server.
+        Returns the post answer or False on error
+
+        arguments:
+        image      -- path to the image (url/path)
+        identifier -- target folder (id)
+        """
+        if not self.api.ping():
+            print(self.errormsg)
+            return False
+        if type(identifier)==str:
+            identifier = self.api.translateFolder(identifier)
+        remstart = ["http://","https://","ftp://"]
+        isremote = False
+        for beg in remstart:
+            if image.startswith(beg):
+                isremote = True
+                break
+        if isremote:
+            # TODO: remote linking files
+            pass
+        else:
+            return self.api.newCycle(image,identifier)
+
+    def deloldestimg(self, identifier):
+        """
+        Deletes the oldest image in the folder with <identifier> id.
+        Returns the post answer or False on error
+
+        arguments:
+        identifier -- folder name or id
+        """
+        if not self.api.ping():
+            print(self.errormsg)
+            return False
+        if type(identifier)==str:
+            identifier = self.api.translateFolder(identifier)
+        return self.api.delLastCycle(identifier)
+
+    def deleteById(self, imgid):
+        """
+
+        """
+        # TODO: delete by id
+        pass # delete image by image id
+
+    def createFolder(self, foldername):
+        # TODO: create folder
+        pass # return folder id
+
+    def deleteFolder(self, identifier):
+        # TODO: delete folder
+        pass # return successfull
+
+    def downloadimg(self, id, tofile):
+        # TODO: download image
+        pass # save image with id to tofile
 
 
 class wmsapi:
@@ -120,6 +201,9 @@ class wmsapi:
         ans = self.post(data, {"file": f})
         f.close()
         return ans
+
+    def remoteUpload(self, url, target):
+        pass # TODO: remote upload
 
     def newCycle(self, path, target):
         """
