@@ -95,6 +95,7 @@ def genImage(dayarray, size=(1280, 720), font="Lumberjack.otf"):
     except:
         pass
     img.save(thisdir + "example/" + imgname)
+    return thisdir + "example/" + imgname
 
 
 def rectangle(draw, p1, p2, color, border=None):

@@ -2,6 +2,8 @@
 import time
 import random
 import library
+import userio
+import re
 
 enableDebug = True
 
@@ -52,7 +54,7 @@ def sevenDayArray(now):
     return getnDayArray(now, 7)
 
 
-def getnDayArray(now, n=5):
+def getnTestDayArray(now, n=5):
     tdiff = 60 * 60 * 24
     days = []
     for x in range(0, tdiff * n, tdiff):
@@ -64,6 +66,26 @@ def getnDayArray(now, n=5):
                 days[len(days) - 1].addEintrag(testing.getRandomEintrag())
     return days
 
+def getnDayArray(now, n=5):
+    p = re.compile("&#\d*;")
+    def fixEscape(name):
+        if p.match(name):
+            r = ""
+            for x in p.findall(name):
+                r += chr(int(x[2:-1]))
+            return r
+        return name
+
+    tdiff = 60 * 60 * 24
+    days = []
+    for x in range(0, n):
+        tc = now + x * tdiff
+        days.append(Tag(tc))
+        for g in userio.getEntries(tc):
+            days[x].addEintrag(Eintrag(fixEscape(g[0]), fixEscape(g[1]), g[2]))
+        pass
+    return days
+
 
 def printDayArray(da):
     for tag in da:
@@ -73,10 +95,14 @@ def printDayArray(da):
 
 
 def main(args):
-    days = getnDayArray(time.time(), 5)
+    if len(args)-1:
+        userio.getCache(args[1])
+    else:
+        userio.getCache()
+    days = getnDayArray(time.time(), n=5)
     if enableDebug:
         printDayArray(days)
-        library.genImage(days)
+        image = library.genImage(days)
 
 
 if __name__ == '__main__':
